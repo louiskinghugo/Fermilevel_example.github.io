@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>半導體能帶與費米能階 (Semiconductor Energy Bands & Fermi Level)</title>
+  <style>
+    :root {
+      --primary: #3b82f6;
+      --cb-bg: #e0f2fe;
+      --cb-border: #7dd3fc;
+      --vb-bg: #fee2e2;
+      --vb-border: #fca5a5;
+      --text-main: #334155;
+      --bg-main: #f8fafc;
+      --fermi-color: #f59e0b;
+      --electron: #2563eb;
+      --hole: #dc2626;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      background: #ffffff;
+      max-width: 950px;
+      width: 100%;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 1.8rem;
+      color: #1e293b;
+      margin-bottom: 10px;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      background: transparent;
+      border: 2px solid var(--primary);
+      color: var(--primary);
+      padding: 10px 24px;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      outline: none;
+    }
+
+    button:hover {
+      background: #eff6ff;
+    }
+
+    button.active {
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+
+    .content {
+      display: flex;
+      flex-direction: row;
+      gap: 30px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .svg-container {
+      flex: 1.5;
+      min-width: 350px;
+      background: #ffffff;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      padding: 10px;
+      display: flex;
+      justify-content: center;
+    }
+
+    svg {
+      width: 100%;
+      max-width: 500px;
+      height: auto;
+    }
+
+    .info-panel {
+      flex: 1;
+      min-width: 300px;
+      background: #f1f5f9;
+      padding: 25px;
+      border-radius: 12px;
+      border-left: 5px solid var(--primary);
+    }
+
+    .info-panel h2 {
+      margin-bottom: 15px;
+      color: #0f172a;
+      font-size: 1.4rem;
+    }
+
+    .info-panel p {
+      line-height: 1.6;
+      font-size: 1.05rem;
+      color: #475569;
+    }
+
+    /* SVG Animations & Styles */
+    .fermi-group {
+      transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .particle {
+      animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+      opacity: 0;
+    }
+
+    .fade-line {
+      transition: opacity 0.5s ease;
+    }
+
+    @keyframes popIn {
+      0% { opacity: 0; transform: scale(0); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    @media (max-width: 768px) {
+      .content { flex-direction: column; }
+      .svg-container { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>半導體能帶與費米能階<br><small style="font-size: 1.1rem; color: #64748b; font-weight: normal;">Semiconductor Energy Bands & Fermi Level</small></h1>
+    </header>
+
+    <div class="controls">
+      <button class="active" onclick="setState('intrinsic')" id="btn-intrinsic">本徵半導體 (Intrinsic)</button>
+      <button onclick="setState('ntype')" id="btn-ntype">N型半導體 (N-Type)</button>
+      <button onclick="setState('ptype')" id="btn-ptype">P型半導體 (P-Type)</button>
+    </div>
+
+    <div class="content">
+      <div class="svg-container">
+        <svg viewBox="0 0 500 650" xmlns="http://www.w3.org/2000/svg">
+          <!-- Definitions for gradients/markers -->
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b" />
+            </marker>
+          </defs>
+
+          <!-- Energy Axis -->
+          <line x1="40" y1="600" x2="40" y2="40" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" />
+          <text x="-350" y="25" transform="rotate(-90)" fill="#64748b" font-size="16" font-weight="bold" letter-spacing="2">能量 (Energy)</text>
+
+          <!-- Conduction Band (CB) -->
+          <rect x="70" y="50" width="380" height="180" fill="var(--cb-bg)" stroke="var(--cb-border)" stroke-width="2" rx="4" />
+          <text x="260" y="80" text-anchor="middle" fill="#0284c7" font-size="20" font-weight="bold">導帶 (Conduction Band, CB)</text>
+          
+          <!-- Valence Band (VB) -->
+          <rect x="70" y="420" width="380" height="180" fill="var(--vb-bg)" stroke="var(--vb-border)" stroke-width="2" rx="4" />
+          <text x="260" y="580" text-anchor="middle" fill="#b91c1c" font-size="20" font-weight="bold">價帶 (Valence Band, VB)</text>
+
+          <!-- Energy Gap text -->
+          <text x="260" y="330" text-anchor="middle" fill="#94a3b8" font-size="18" font-style="italic">能隙 (Energy Gap, E<tspan baseline-shift="sub" font-size="12">g</tspan>)</text>
+
+          <!-- Additional Energy Levels (Donor/Acceptor) -->
+          <g id="donor-level" class="fade-line" style="opacity: 0;">
+            <line x1="70" y1="245" x2="450" y2="245" stroke="#10b981" stroke-width="2" stroke-dasharray="4 4" />
+            <text x="460" y="250" fill="#10b981" font-size="16" font-weight="bold">E<tspan baseline-shift="sub" font-size="12">D</tspan></text>
+          </g>
+
+          <g id="acceptor-level" class="fade-line" style="opacity: 0;">
+            <line x1="70" y1="405" x2="450" y2="405" stroke="#8b5cf6" stroke-width="2" stroke-dasharray="4 4" />
+            <text x="460" y="410" fill="#8b5cf6" font-size="16" font-weight="bold">E<tspan baseline-shift="sub" font-size="12">A</tspan></text>
+          </g>
+
+          <!-- Fermi Level Group (Animated) -->
+          <g id="fermi-group" class="fermi-group" transform="translate(0, 325)">
+            <line x1="70" y1="0" x2="450" y2="0" stroke="var(--fermi-color)" stroke-width="3" stroke-dasharray="8 6" />
+            <rect x="460" y="-12" width="30" height="24" fill="#fff" opacity="0.8"/>
+            <text x="460" y="6" fill="var(--fermi-color)" font-size="20" font-weight="bold">E<tspan baseline-shift="sub" font-size="14">F</tspan></text>
+          </g>
+
+          <!-- Particles Container -->
+          <g id="particles-container"></g>
+
+        </svg>
+      </div>
+
+      <div class="info-panel">
+        <h2 id="desc-title">本徵半導體 (Intrinsic)</h2>
+        <p id="desc-text">在未摻雜的本徵半導體中，費米能階 (E<sub>F</sub>) 剛好位於導帶 (CB) 與價帶 (VB) 的正中央。熱激發產生的電子與電洞數量相等 (n = p)。</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const states = {
+      intrinsic: {
+        fermiY: 325, 
+        eCount: 3,
+        hCount: 3,
+        title: '本徵半導體 (Intrinsic Semiconductor)',
+        text: '在未摻雜的本徵半導體中，費米能階 (E<sub>F</sub>) 位於能隙正中央。<br><br>受熱激發的影響，少數電子躍遷至導帶，同時在價帶留下相等數量的電洞。導帶中的電子數量與價帶中的電洞數量完全相等 <strong>(n = p)</strong>。',
+        donorOpacity: 0,
+        acceptorOpacity: 0
+      },
+      ntype: {
+        fermiY: 260, 
+        eCount: 16,
+        hCount: 2,
+        title: 'N型半導體 (N-type Semiconductor)',
+        text: '摻雜五價元素（如磷 P、砷 As）後，這些雜質原子提供額外的電子，在靠近導帶處形成<strong>施體能階 (E<sub>D</sub>)</strong>。<br><br>這使得費米能階 (E<sub>F</sub>) 向上移動靠近導帶。此時多數載子為電子，少數載子為電洞 <strong>(n ≫ p)</strong>。',
+        donorOpacity: 1,
+        acceptorOpacity: 0
+      },
+      ptype: {
+        fermiY: 390, 
+        eCount: 2,
+        hCount: 16,
+        title: 'P型半導體 (P-type Semiconductor)',
+        text: '摻雜三價元素（如硼 B、鎵 Ga）後，這些雜質原子容易接受電子，在靠近價帶處形成<strong>受體能階 (E<sub>A</sub>)</strong>。<br><br>這使得費米能階 (E<sub>F</sub>) 向下移動靠近價帶。此時多數載子為電洞，少數載子為電子 <strong>(p ≫ n)</strong>。',
+        donorOpacity: 0,
+        acceptorOpacity: 1
+      }
+    };
+
+    // Boundaries for drawing particles
+    const cbBounds = { minX: 90, maxX: 430, minY: 100, maxY: 210 };
+    const vbBounds = { minX: 90, maxX: 430, minY: 440, maxY: 560 };
+
+    function createElectron(x, y) {
+      return `
+        <g class="particle" style="transform: translate(${x}px, ${y}px)">
+          <circle cx="0" cy="0" r="8" fill="var(--electron)" />
+          <text x="0" y="0" dominant-baseline="central" text-anchor="middle" fill="white" font-size="14" font-weight="bold" font-family="monospace">-</text>
+        </g>
+      `;
+    }
+
+    function createHole(x, y) {
+      return `
+        <g class="particle" style="transform: translate(${x}px, ${y}px)">
+          <circle cx="0" cy="0" r="8" fill="white" stroke="var(--hole)" stroke-width="2" />
+          <text x="0" y="0" dominant-baseline="central" text-anchor="middle" fill="var(--hole)" font-size="14" font-weight="bold" font-family="monospace">+</text>
+        </g>
+      `;
+    }
+
+    function getRandomInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function drawParticles(eCount, hCount) {
+      const container = document.getElementById('particles-container');
+      let svgContent = '';
+
+      // Generate electrons in Conduction Band
+      for(let i=0; i<eCount; i++) {
+        const x = getRandomInt(cbBounds.minX, cbBounds.maxX);
+        const y = getRandomInt(cbBounds.minY, cbBounds.maxY);
+        svgContent += createElectron(x, y);
+      }
+
+      // Generate holes in Valence Band
+      for(let i=0; i<hCount; i++) {
+        const x = getRandomInt(vbBounds.minX, vbBounds.maxX);
+        const y = getRandomInt(vbBounds.minY, vbBounds.maxY);
+        svgContent += createHole(x, y);
+      }
+
+      container.innerHTML = svgContent;
+    }
+
+    function setState(type) {
+      const state = states[type];
+
+      // Update active button
+      document.querySelectorAll('.controls button').forEach(btn => btn.classList.remove('active'));
+      document.getElementById(`btn-${type}`).classList.add('active');
+
+      // Animate Fermi Level
+      document.getElementById('fermi-group').setAttribute('transform', `translate(0, ${state.fermiY})`);
+
+      // Toggle Donor/Acceptor levels
+      document.getElementById('donor-level').style.opacity = state.donorOpacity;
+      document.getElementById('acceptor-level').style.opacity = state.acceptorOpacity;
+
+      // Update Text
+      document.getElementById('desc-title').innerHTML = state.title;
+      document.getElementById('desc-text').innerHTML = state.text;
+
+      // Redraw particles with slight delay to sync with line movement conceptually
+      setTimeout(() => {
+        drawParticles(state.eCount, state.hCount);
+      }, 100);
+    }
+
+    // Initialize default state
+    window.onload = () => {
+      setState('intrinsic');
+    };
+  </script>
+</body>
+</html>
